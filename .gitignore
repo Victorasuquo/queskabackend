@@ -29,6 +29,7 @@ MANIFEST
 # === Virtual Environments ===
 .env
 .venv
+/Users/ghgfd/Documents/QUESKA/queskabackend/.env
 env/
 venv/
 ENV/
