@@ -1,0 +1,331 @@
+# ============================================
+# QUESKA BACKEND - Git Ignore
+# ============================================
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# === Virtual Environments ===
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# === PyInstaller ===
+*.manifest
+*.spec
+
+# === Installer logs ===
+pip-log.txt
+pip-delete-this-directory.txt
+
+# === Unit test / coverage ===
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# === Translations ===
+*.mo
+*.pot
+
+# === Django stuff (if any) ===
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# === Flask stuff (if any) ===
+instance/
+.webassets-cache
+
+# === Scrapy stuff ===
+.scrapy
+
+# === Sphinx documentation ===
+docs/_build/
+
+# === PyBuilder ===
+.pybuilder/
+target/
+
+# === Jupyter Notebook ===
+.ipynb_checkpoints
+
+# === IPython ===
+profile_default/
+ipython_config.py
+
+# === pyenv ===
+.python-version
+
+# === pipenv ===
+Pipfile.lock
+
+# === poetry ===
+poetry.lock
+
+# === pdm ===
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# === PEP 582 ===
+__pypackages__/
+
+# === Celery ===
+celerybeat-schedule
+celerybeat.pid
+celerybeat-schedule.db
+
+# === SageMath ===
+*.sage.py
+
+# === Environments ===
+.env
+.env.*
+!.env.example
+!env.example
+.envrc
+*.local
+
+# === Spyder project settings ===
+.spyderproject
+.spyproject
+
+# === Rope project settings ===
+.ropeproject
+
+# === mkdocs documentation ===
+/site
+
+# === mypy ===
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# === Pyre type checker ===
+.pyre/
+
+# === pytype static type analyzer ===
+.pytype/
+
+# === Cython ===
+cython_debug/
+
+# === Ruff ===
+.ruff_cache/
+
+# === IDEs and Editors ===
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# === OS Generated Files ===
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# === Project Specific ===
+# Logs
+logs/
+*.log
+log/
+
+# Local data
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
+uploads/
+media/
+static/uploads/
+
+# Secrets and credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials/
+firebase-credentials.json
+firebase-adminsdk*.json
+service-account*.json
+google-credentials.json
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Terraform (if used)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Node (if frontend in same repo)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ChromaDB local storage
+chromadb/
+chroma/
+
+# Vector DB data
+qdrant_storage/
+weaviate_data/
+
+# MinIO local data
+minio_data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Test artifacts
+test-results/
+allure-results/
+allure-report/
+
+# Profiling
+*.prof
+*.lprof
+*.pstats
+
+# Jupyter
+.jupyter/
+
+# Pre-commit
+.pre-commit-config.yaml.lock
+
+# Playwright
+playwright-report/
+playwright/.cache/
+test-results/
+
+# Scrapy
+.scrapy/
+
+# Sentry
+.sentryclirc
+
+# Documentation build
+site/
+_build/
+
+# Benchmark results
+.benchmarks/
+
+# ML Models (large files)
+models/*.bin
+models/*.pt
+models/*.pth
+models/*.h5
+models/*.onnx
+*.gguf
+*.ggml
+
+# Ignore local configuration overrides
+config.local.py
+settings.local.py
+local_config.py
+
+# API keys and tokens (extra safety)
+*_token.txt
+*_key.txt
+*_secret.txt
+api_keys.json
+tokens.json
+
