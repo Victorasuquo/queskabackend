@@ -126,6 +126,26 @@ async def get_current_active_user(
     return user
 
 
+async def get_current_user_optional(
+    token_data: Optional[TokenData] = Depends(get_optional_token_data)
+) -> Optional[User]:
+    """
+    Get the current user if authenticated, None otherwise.
+    Used for endpoints that work both authenticated and unauthenticated.
+    """
+    if not token_data:
+        return None
+    
+    if token_data.user_type != "user":
+        return None
+    
+    user = await user_repository.get_by_id(token_data.user_id)
+    if not user or user.is_deleted:
+        return None
+    
+    return user
+
+
 # === Vendor Dependencies ===
 
 async def get_current_vendor(
@@ -170,6 +190,20 @@ async def get_current_active_vendor(
     return vendor
 
 
+async def get_current_verified_vendor(
+    vendor: Vendor = Depends(get_current_active_vendor)
+) -> Vendor:
+    """
+    Get the current authenticated verified vendor.
+    """
+    if not vendor.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vendor account is not verified"
+        )
+    return vendor
+
+
 # === Agent Dependencies ===
 
 async def get_current_agent(
@@ -210,6 +244,20 @@ async def get_current_active_agent(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Agent account is not active"
+        )
+    return agent
+
+
+async def get_current_verified_agent(
+    agent: Agent = Depends(get_current_active_agent)
+) -> Agent:
+    """
+    Get the current authenticated verified agent.
+    """
+    if not agent.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Agent account is not verified"
         )
     return agent
 

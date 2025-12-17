@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from beanie import PydanticObjectId
 from loguru import logger
-from python_slugify import slugify
+from slugify import slugify
 
 from app.core.constants import AccountStatus, AgentType, VerificationStatus
 from app.core.exceptions import (
@@ -115,7 +115,7 @@ class AgentService:
             "referred_by": referred_by,
             "status": AccountStatus.PENDING,
             "is_verified": False,
-            "is_active": False,
+            "is_active": True,  # Active but pending verification
             "address": AgentAddress(
                 city=data.city,
                 state=data.state,

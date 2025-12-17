@@ -34,6 +34,20 @@ from app.schemas.base import (
 )
 
 
+# === Price Range Schema ===
+
+class PriceRangeCreate(BaseSchema):
+    """Price range schema"""
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    currency: str = "NGN"
+
+
+class PriceRangeResponse(PriceRangeCreate):
+    """Price range response schema"""
+    pass
+
+
 # === Vendor Media Schemas ===
 
 class VendorMediaCreate(BaseSchema):
@@ -224,7 +238,7 @@ class VendorUpdate(BaseSchema):
     refund_policy: Optional[str] = None
     terms_and_conditions: Optional[str] = None
     languages_spoken: Optional[List[str]] = None
-    price_range: Optional[Dict[str, float]] = None
+    price_range: Optional[PriceRangeCreate] = None
     notification_preferences: Optional[Dict[str, bool]] = None
 
 
@@ -273,7 +287,7 @@ class VendorMinimalResponse(BaseSchema):
     city: Optional[str] = None
     state: Optional[str] = None
     rating: Optional[RatingResponse] = None
-    price_range: Optional[Dict[str, float]] = None
+    price_range: Optional[PriceRangeCreate] = None
 
 
 class VendorResponse(BaseSchema):
@@ -309,7 +323,7 @@ class VendorResponse(BaseSchema):
     services: List[str] = Field(default_factory=list)
     features: List[str] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
-    price_range: Optional[Dict[str, float]] = None
+    price_range: Optional[PriceRangeCreate] = None
     currency: str = "NGN"
     languages_spoken: List[str] = Field(default_factory=list)
     cancellation_policy: CancellationPolicy
@@ -347,7 +361,7 @@ class VendorPublicResponse(BaseSchema):
     services: List[str] = Field(default_factory=list)
     features: List[str] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
-    price_range: Optional[Dict[str, float]] = None
+    price_range: Optional[PriceRangeCreate] = None
     currency: str = "NGN"
     languages_spoken: List[str] = Field(default_factory=list)
     cancellation_policy: CancellationPolicy

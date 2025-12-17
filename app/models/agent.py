@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from beanie import Document, Indexed, PydanticObjectId
-from pydantic import EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.core.constants import (
     AccountStatus,
@@ -18,46 +18,39 @@ from app.core.constants import (
 )
 
 
-class AgentAddress(Document):
+# === Embedded Models (use BaseModel, NOT Document) ===
+
+class AgentAddress(BaseModel):
     """Agent address embedded document"""
     street: Optional[str] = None
-    city: str
-    state: str
+    city: str = ""
+    state: str = ""
     country: str = "Nigeria"
     postal_code: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     formatted_address: Optional[str] = None
-    
-    class Settings:
-        name = "agent_addresses"
 
 
-class AgentContact(Document):
+class AgentContact(BaseModel):
     """Agent contact information"""
-    phone: str
+    phone: Optional[str] = None
     phone_secondary: Optional[str] = None
-    email: EmailStr
+    email: Optional[str] = None
     website: Optional[str] = None
     whatsapp: Optional[str] = None
-    
-    class Settings:
-        name = "agent_contacts"
 
 
-class AgentSocialLinks(Document):
+class AgentSocialLinks(BaseModel):
     """Agent social media links"""
     facebook: Optional[str] = None
     instagram: Optional[str] = None
     twitter: Optional[str] = None
     linkedin: Optional[str] = None
     youtube: Optional[str] = None
-    
-    class Settings:
-        name = "agent_social_links"
 
 
-class AgentBankAccount(Document):
+class AgentBankAccount(BaseModel):
     """Agent bank account for commission payouts"""
     bank_name: str
     account_name: str
@@ -69,25 +62,19 @@ class AgentBankAccount(Document):
     is_verified: bool = False
     is_primary: bool = True
     verified_at: Optional[datetime] = None
-    
-    class Settings:
-        name = "agent_bank_accounts"
 
 
-class AgentCommission(Document):
+class AgentCommission(BaseModel):
     """Agent commission structure"""
     type: str = "percentage"
-    rate: float = 10.0  # Default 10% commission on bookings
+    rate: float = 10.0
     fixed_amount: Optional[float] = None
     tiers: Optional[List[Dict[str, Any]]] = None
     currency: str = "NGN"
     effective_from: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "agent_commissions"
 
 
-class AgentRating(Document):
+class AgentRating(BaseModel):
     """Agent rating summary"""
     average: float = 0.0
     count: int = 0
@@ -95,41 +82,34 @@ class AgentRating(Document):
         "5": 0, "4": 0, "3": 0, "2": 0, "1": 0
     })
     last_updated: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "agent_ratings"
 
 
-class AgentMedia(Document):
+class AgentMedia(BaseModel):
     """Agent media items"""
     profile_photo: Optional[str] = None
+    profile_photo_public_id: Optional[str] = None
     cover_image: Optional[str] = None
+    cover_image_public_id: Optional[str] = None
     gallery: List[Dict[str, Any]] = Field(default_factory=list)
     portfolio: List[Dict[str, Any]] = Field(default_factory=list)
-    
-    class Settings:
-        name = "agent_media"
 
 
-class AgentVerification(Document):
+class AgentVerification(BaseModel):
     """Agent verification documents and status"""
     status: VerificationStatus = VerificationStatus.PENDING
-    identity_document: Optional[str] = None  # Document URL
-    license_document: Optional[str] = None  # Travel agent license
-    certification: Optional[str] = None  # Professional certification
+    identity_document: Optional[str] = None
+    license_document: Optional[str] = None
+    certification: Optional[str] = None
     proof_of_address: Optional[str] = None
-    agency_registration: Optional[str] = None  # If agency
+    agency_registration: Optional[str] = None
     submitted_at: Optional[datetime] = None
     reviewed_at: Optional[datetime] = None
-    reviewed_by: Optional[PydanticObjectId] = None
+    reviewed_by: Optional[str] = None
     rejection_reason: Optional[str] = None
     notes: Optional[str] = None
-    
-    class Settings:
-        name = "agent_verifications"
 
 
-class AgentSubscription(Document):
+class AgentSubscription(BaseModel):
     """Agent subscription details"""
     plan: SubscriptionPlan = SubscriptionPlan.FREE
     started_at: datetime = Field(default_factory=datetime.utcnow)
@@ -139,12 +119,9 @@ class AgentSubscription(Document):
     payment_method: Optional[str] = None
     stripe_subscription_id: Optional[str] = None
     features: List[str] = Field(default_factory=list)
-    
-    class Settings:
-        name = "agent_subscriptions"
 
 
-class AgentAnalytics(Document):
+class AgentAnalytics(BaseModel):
     """Agent performance analytics"""
     total_bookings: int = 0
     total_clients: int = 0
@@ -157,32 +134,25 @@ class AgentAnalytics(Document):
     top_destinations: List[Dict[str, Any]] = Field(default_factory=list)
     last_booking_at: Optional[datetime] = None
     last_updated: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "agent_analytics"
 
 
-class AgentAgency(Document):
+class AgentAgency(BaseModel):
     """Agency information if agent belongs to an agency"""
-    agency_id: Optional[PydanticObjectId] = None
+    agency_id: Optional[str] = None
     agency_name: Optional[str] = None
-    role: Optional[str] = None  # senior_agent, junior_agent, manager
+    role: Optional[str] = None
     joined_at: Optional[datetime] = None
-    
-    class Settings:
-        name = "agent_agencies"
 
 
-class AgentSpecialization(Document):
+class AgentSpecialization(BaseModel):
     """Agent specialization areas"""
-    destinations: List[str] = Field(default_factory=list)  # Countries/regions
-    travel_types: List[str] = Field(default_factory=list)  # luxury, adventure, family
-    services: List[str] = Field(default_factory=list)  # flights, hotels, tours
+    destinations: List[str] = Field(default_factory=list)
+    travel_types: List[str] = Field(default_factory=list)
+    services: List[str] = Field(default_factory=list)
     languages: List[str] = Field(default_factory=lambda: ["English"])
-    
-    class Settings:
-        name = "agent_specializations"
 
+
+# === Main Agent Document ===
 
 class Agent(Document):
     """
@@ -207,7 +177,7 @@ class Agent(Document):
     is_featured: bool = False
     is_premium: bool = False
     is_active: bool = True
-    is_available: bool = True  # Available to take new clients
+    is_available: bool = True
     
     # Contact & Location
     phone: str
@@ -254,7 +224,7 @@ class Agent(Document):
     
     # Clients
     client_ids: List[PydanticObjectId] = Field(default_factory=list)
-    max_clients: int = 50  # Max concurrent clients
+    max_clients: int = 50
     
     # Settings & Preferences
     settings: Dict[str, Any] = Field(default_factory=dict)
@@ -270,7 +240,7 @@ class Agent(Document):
     
     # Availability
     availability_schedule: Optional[Dict[str, Any]] = None
-    response_time: Optional[str] = None  # "within_1_hour", "within_24_hours"
+    response_time: Optional[str] = None
     
     # Certifications & Awards
     certifications: List[Dict[str, Any]] = Field(default_factory=list)
@@ -376,7 +346,7 @@ class Agent(Document):
         if self.verification:
             self.verification.status = VerificationStatus.VERIFIED
             self.verification.reviewed_at = datetime.utcnow()
-            self.verification.reviewed_by = admin_id
+            self.verification.reviewed_by = str(admin_id)
         await self.save()
     
     async def add_client(self, client_id: PydanticObjectId) -> bool:
@@ -460,4 +430,3 @@ class Agent(Document):
             "can_accept_clients": self.can_accept_clients,
             "created_at": self.created_at.isoformat(),
         }
-

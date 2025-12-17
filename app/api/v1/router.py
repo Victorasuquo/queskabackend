@@ -6,16 +6,22 @@ Main router for API version 1 endpoints
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    auth,
     users,
     vendors,
     agents,
     dashboards,
+    uploads,
+    notifications,
+    experiences,
+    experience_cards,
+    geolocation,
+    travel_search,
+    payments,
+    activities,
     # admins,  # TODO: Implement
-    # experiences,  # TODO: Implement
     # bookings,  # TODO: Implement
     # reviews,  # TODO: Implement
-    # payments,  # TODO: Implement
-    # notifications,  # TODO: Implement
     # search,  # TODO: Implement
     # chat,  # TODO: Implement
     # ai,  # TODO: Implement
@@ -23,6 +29,14 @@ from app.api.v1.endpoints import (
 
 
 api_router = APIRouter()
+
+
+# === Auth Routes ===
+api_router.include_router(
+    auth.router,
+    prefix="/auth",
+    tags=["Authentication"]
+)
 
 
 # === User Routes ===
@@ -54,6 +68,70 @@ api_router.include_router(
     dashboards.router,
     prefix="/dashboards",
     tags=["Dashboards"]
+)
+
+
+# === Upload Routes ===
+api_router.include_router(
+    uploads.router,
+    prefix="/uploads",
+    tags=["Uploads"]
+)
+
+
+# === Notification Routes ===
+api_router.include_router(
+    notifications.router,
+    prefix="/notifications",
+    tags=["Notifications"]
+)
+
+
+# === Experience Routes ===
+api_router.include_router(
+    experiences.router,
+    prefix="/experiences",
+    tags=["Experiences"]
+)
+
+
+# === Experience Card Routes ===
+api_router.include_router(
+    experience_cards.router,
+    prefix="/cards",
+    tags=["Experience Cards"]
+)
+
+
+# === Geolocation Routes ===
+api_router.include_router(
+    geolocation.router,
+    prefix="/geo",
+    tags=["Geolocation & Maps"]
+)
+
+
+# === Travel Search Routes ===
+api_router.include_router(
+    travel_search.router,
+    prefix="/travel",
+    tags=["Travel Search"]
+)
+
+
+# === Payment Routes ===
+api_router.include_router(
+    payments.router,
+    prefix="/payments",
+    tags=["Payments"]
+)
+
+
+# === Activity Routes ===
+api_router.include_router(
+    activities.router,
+    prefix="/activities",
+    tags=["Activities"]
 )
 
 
@@ -99,11 +177,7 @@ async def health_check():
 #     tags=["Payments"]
 # )
 
-# api_router.include_router(
-#     notifications.router,
-#     prefix="/notifications",
-#     tags=["Notifications"]
-# )
+# Notifications router implemented above
 
 # api_router.include_router(
 #     search.router,

@@ -12,10 +12,10 @@ from beanie.odm.operators.find.comparison import In, GTE, LTE
 from app.core.constants import AccountStatus, VendorCategory, VerificationStatus
 from app.models.vendor import Vendor, VendorAddress, VendorVerification
 from app.repositories.base import BaseRepository
-from app.schemas.vendor import VendorCreate, VendorUpdate, VendorListParams
+from app.schemas.vendor import VendorListParams
 
 
-class VendorRepository(BaseRepository[Vendor, VendorCreate, VendorUpdate]):
+class VendorRepository(BaseRepository[Vendor]):
     """Repository for Vendor document operations"""
     
     def __init__(self):
@@ -343,7 +343,7 @@ class VendorRepository(BaseRepository[Vendor, VendorCreate, VendorUpdate]):
         """
         return await self.model.find(
             {"category": category, "is_deleted": False, "is_active": True}
-        ).sort(("-is_featured", "-rating.average")) \
+        ).sort(["-is_featured", "-rating.average"]) \
             .skip(skip) \
             .limit(limit) \
             .to_list()

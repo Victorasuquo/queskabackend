@@ -499,3 +499,86 @@ class ConnectionError(DatabaseError):
         details: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message, details)
+
+
+# === Business Logic Errors ===
+
+class VendorError(AppException):
+    """Vendor-related business logic error"""
+    
+    def __init__(
+        self,
+        message: str = "Vendor operation failed",
+        details: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(
+            message=message,
+            status_code=400,
+            error_code="VENDOR_ERROR",
+            details=details
+        )
+
+
+class AgentError(AppException):
+    """Agent-related business logic error"""
+    
+    def __init__(
+        self,
+        message: str = "Agent operation failed",
+        details: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(
+            message=message,
+            status_code=400,
+            error_code="AGENT_ERROR",
+            details=details
+        )
+
+
+class UserError(AppException):
+    """User-related business logic error"""
+    
+    def __init__(
+        self,
+        message: str = "User operation failed",
+        details: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(
+            message=message,
+            status_code=400,
+            error_code="USER_ERROR",
+            details=details
+        )
+
+
+class ExperienceError(AppException):
+    """Experience-related business logic error"""
+    
+    def __init__(
+        self,
+        message: str = "Experience operation failed",
+        details: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(
+            message=message,
+            status_code=400,
+            error_code="EXPERIENCE_ERROR",
+            details=details
+        )
+
+
+class ServiceUnavailableError(AppException):
+    """Service temporarily unavailable"""
+    
+    def __init__(
+        self,
+        service: str = "Service",
+        message: str = "temporarily unavailable",
+        details: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(
+            message=f"{service} is {message}",
+            status_code=503,
+            error_code="SERVICE_UNAVAILABLE",
+            details=details
+        )

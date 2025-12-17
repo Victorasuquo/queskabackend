@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from beanie import PydanticObjectId
 from loguru import logger
-from python_slugify import slugify
+from slugify import slugify
 
 from app.core.constants import AccountStatus, VendorCategory, VerificationStatus
 from app.core.exceptions import (
@@ -102,7 +102,7 @@ class VendorService:
             "owner_phone": data.owner_phone,
             "status": AccountStatus.PENDING,
             "is_verified": False,
-            "is_active": False,
+            "is_active": True,  # Active but pending verification
             "address": VendorAddress(
                 city=data.city,
                 state=data.state,

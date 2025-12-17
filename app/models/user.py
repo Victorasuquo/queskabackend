@@ -7,7 +7,7 @@ from datetime import datetime, date
 from typing import Any, Dict, List, Optional
 
 from beanie import Document, Indexed, PydanticObjectId
-from pydantic import EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.core.constants import (
     AccountStatus,
@@ -16,8 +16,8 @@ from app.core.constants import (
 )
 
 
-class UserPreferences(Document):
-    """User travel preferences"""
+class UserPreferences(BaseModel):
+    """User travel preferences - embedded document"""
     interests: List[str] = Field(default_factory=list)
     travel_style: Optional[str] = None  # budget, mid-range, luxury
     dietary_restrictions: List[str] = Field(default_factory=list)
@@ -30,29 +30,23 @@ class UserPreferences(Document):
     seat_preference: Optional[str] = None  # window, aisle, middle
     meal_preference: Optional[str] = None  # vegetarian, vegan, halal, kosher
     travel_companions: Optional[str] = None  # solo, couple, family, group
-    
-    class Settings:
-        name = "user_preferences"
 
 
-class UserAddress(Document):
-    """User address"""
+class UserAddress(BaseModel):
+    """User address - embedded document"""
     label: str = "Home"  # Home, Work, Other
     street: Optional[str] = None
-    city: str
-    state: str
+    city: str = ""
+    state: str = ""
     country: str = "Nigeria"
     postal_code: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     is_primary: bool = True
-    
-    class Settings:
-        name = "user_addresses"
 
 
-class UserSubscription(Document):
-    """User subscription details"""
+class UserSubscription(BaseModel):
+    """User subscription details - embedded document"""
     plan: SubscriptionPlan = SubscriptionPlan.FREE
     started_at: datetime = Field(default_factory=datetime.utcnow)
     expires_at: Optional[datetime] = None
@@ -60,13 +54,10 @@ class UserSubscription(Document):
     auto_renew: bool = True
     stripe_subscription_id: Optional[str] = None
     features: List[str] = Field(default_factory=list)
-    
-    class Settings:
-        name = "user_subscriptions"
 
 
-class UserStats(Document):
-    """User statistics"""
+class UserStats(BaseModel):
+    """User statistics - embedded document"""
     total_experiences: int = 0
     completed_experiences: int = 0
     upcoming_experiences: int = 0
@@ -80,53 +71,41 @@ class UserStats(Document):
     cities_visited: int = 0
     last_experience_at: Optional[datetime] = None
     last_booking_at: Optional[datetime] = None
-    
-    class Settings:
-        name = "user_stats"
 
 
-class UserSocialConnections(Document):
-    """User social connections"""
+class UserSocialConnections(BaseModel):
+    """User social connections - embedded document"""
     follower_ids: List[PydanticObjectId] = Field(default_factory=list)
     following_ids: List[PydanticObjectId] = Field(default_factory=list)
     blocked_ids: List[PydanticObjectId] = Field(default_factory=list)
-    
-    class Settings:
-        name = "user_social_connections"
 
 
-class UserActivityLog(Document):
-    """User activity log entry"""
-    action: str
-    description: str
+class UserActivityLog(BaseModel):
+    """User activity log entry - embedded document"""
+    action: str = ""
+    description: str = ""
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
     device_info: Optional[Dict[str, Any]] = None
     location: Optional[Dict[str, Any]] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "user_activity_logs"
 
 
-class UserDevice(Document):
-    """User registered device"""
-    device_id: str
-    device_type: str  # ios, android, web
+class UserDevice(BaseModel):
+    """User registered device - embedded document"""
+    device_id: str = ""
+    device_type: str = ""  # ios, android, web
     device_name: Optional[str] = None
     push_token: Optional[str] = None
     is_active: bool = True
     last_used_at: datetime = Field(default_factory=datetime.utcnow)
     registered_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "user_devices"
 
 
-class UserPaymentMethod(Document):
-    """User saved payment method"""
-    type: str  # card, bank_account
-    provider: str  # stripe, paystack
+class UserPaymentMethod(BaseModel):
+    """User saved payment method - embedded document"""
+    type: str = ""  # card, bank_account
+    provider: str = ""  # stripe, paystack
     last_four: Optional[str] = None
     brand: Optional[str] = None  # visa, mastercard
     exp_month: Optional[int] = None
@@ -134,9 +113,6 @@ class UserPaymentMethod(Document):
     is_default: bool = False
     stripe_payment_method_id: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "user_payment_methods"
 
 
 class User(Document):

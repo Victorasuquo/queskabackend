@@ -88,13 +88,30 @@ class Settings(BaseSettings):
     # === Google Maps (Fallback) ===
     GOOGLE_MAPS_API_KEY: Optional[str] = None
     
+    # === Google OAuth Settings ===
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_REDIRECT_URI: str = "https://queska.com/auth/google/callback"
+    
     # === Travel API Settings ===
+    # Booking.com
     BOOKING_COM_API_KEY: Optional[str] = None
     BOOKING_COM_API_SECRET: Optional[str] = None
+    
+    # RapidAPI Hotels (FREE - https://rapidapi.com/tipsters/api/booking-com)
+    # 500 requests/month free tier
+    RAPIDAPI_KEY: Optional[str] = None
+    
+    # Expedia Rapid API & XAP API
+    # Get credentials: https://partner.expediagroup.com/en-us/solutions/build-your-travel-experience/rapid-api
     EXPEDIA_API_KEY: Optional[str] = None
     EXPEDIA_API_SECRET: Optional[str] = None
+    EXPEDIA_USE_PRODUCTION: bool = False  # Set to True for production API
+    
+    # Amadeus
     AMADEUS_API_KEY: Optional[str] = None
     AMADEUS_API_SECRET: Optional[str] = None
+    AMADEUS_ENVIRONMENT: str = "test"  # test or production
     
     # === AI Settings ===
     AI_PROVIDER: str = "gemini"  # gemini, perplexity, openai
@@ -133,28 +150,48 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: Optional[str] = None
     AWS_REGION: str = "us-east-1"
     
-    # === Email Settings ===
-    EMAIL_PROVIDER: str = "sendgrid"  # sendgrid, mailgun, smtp
+    # === Email Settings (SendGrid) ===
+    # Get your API key from: https://app.sendgrid.com/settings/api_keys
     SENDGRID_API_KEY: Optional[str] = None
-    MAILGUN_API_KEY: Optional[str] = None
-    MAILGUN_DOMAIN: Optional[str] = None
+    
+    # Sender Configuration
+    EMAIL_FROM_NAME: str = "Queska"
+    EMAIL_FROM_ADDRESS: str = "noreply@queska.com"
+    EMAIL_REPLY_TO: str = "support@queska.com"
+    
+    # SendGrid Dynamic Template IDs (optional - create in SendGrid dashboard)
+    SENDGRID_TEMPLATE_WELCOME: Optional[str] = None
+    SENDGRID_TEMPLATE_PASSWORD_RESET: Optional[str] = None
+    SENDGRID_TEMPLATE_EMAIL_VERIFICATION: Optional[str] = None
+    SENDGRID_TEMPLATE_BOOKING_CONFIRMATION: Optional[str] = None
+    SENDGRID_TEMPLATE_EXPERIENCE_SHARED: Optional[str] = None
+    SENDGRID_TEMPLATE_PAYMENT_RECEIPT: Optional[str] = None
+    SENDGRID_TEMPLATE_NOTIFICATION: Optional[str] = None
+    
+    # SMTP Fallback Settings (optional backup)
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
     SMTP_TLS: bool = True
-    EMAIL_FROM_NAME: str = "Queska"
-    EMAIL_FROM_ADDRESS: EmailStr = "noreply@queska.com"
     
     # === SMS Settings ===
     SMS_PROVIDER: str = "twilio"  # twilio, termii
     TWILIO_ACCOUNT_SID: Optional[str] = None
     TWILIO_AUTH_TOKEN: Optional[str] = None
     TWILIO_PHONE_NUMBER: Optional[str] = None
+    TWILIO_MESSAGING_SERVICE_SID: Optional[str] = None  # Optional for high volume
     TERMII_API_KEY: Optional[str] = None
+    TERMII_SENDER_ID: Optional[str] = None
     
     # === Push Notification Settings ===
     FIREBASE_CREDENTIALS_PATH: Optional[str] = None
+    FIREBASE_PROJECT_ID: Optional[str] = None
+    
+    # === Notification Settings ===
+    NOTIFICATION_BATCH_SIZE: int = 100
+    NOTIFICATION_RETRY_ATTEMPTS: int = 3
+    NOTIFICATION_RETRY_DELAY: int = 60  # seconds
     
     # === Weather API Settings ===
     OPENWEATHER_API_KEY: Optional[str] = None
@@ -163,6 +200,9 @@ class Settings(BaseSettings):
     UBER_CLIENT_ID: Optional[str] = None
     UBER_CLIENT_SECRET: Optional[str] = None
     BOLT_API_KEY: Optional[str] = None
+    
+    # === Frontend URL ===
+    FRONTEND_URL: str = "https://queska.com"  # For email verification/reset links
     
     # === Rate Limiting ===
     RATE_LIMIT_PER_MINUTE: int = 60

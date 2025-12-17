@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from beanie import PydanticObjectId
 from loguru import logger
 
+from app.core.config import settings
 from app.core.constants import AccountStatus, SubscriptionPlan
 from app.core.exceptions import (
     AlreadyExistsError,
@@ -47,6 +48,7 @@ from app.schemas.user import (
     UserPreferencesUpdate,
     UserNotificationPreferences,
 )
+from app.services.email_service import email_service
 
 
 class UserService:
@@ -95,7 +97,7 @@ class UserService:
             "phone": data.phone,
             "referral_code": referral_code,
             "status": AccountStatus.PENDING,
-            "is_active": False,
+            "is_active": True,  # User is active on registration
             "subscription": UserSubscription(plan=SubscriptionPlan.FREE),
             "stats": UserStats(),
             "social_connections": UserSocialConnections(),
@@ -113,7 +115,28 @@ class UserService:
         
         logger.info(f"New user registered: {user.email}")
         
-        # TODO: Send verification email
+        # Send verification email
+        try:
+            verification_token = create_verification_token(
+                subject=str(user.id),
+                user_type="user"
+            )
+            verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+            
+            email_result = await email_service.send_verification_email(
+                to_email=user.email,
+                to_name=user.full_name or user.first_name,
+                verification_url=verification_url,
+                token=verification_token
+            )
+            
+            if email_result.success:
+                logger.info(f"Verification email sent to: {user.email}")
+            else:
+                logger.warning(f"Failed to send verification email to {user.email}: {email_result.error}")
+        except Exception as e:
+            logger.error(f"Error sending verification email to {user.email}: {e}")
+            # Don't fail registration if email fails - user can request resend
         
         return user
     
@@ -276,6 +299,224 @@ class UserService:
         
         return user, True
     
+    async def google_oauth_callback(
+        self,
+        code: str,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Handle Google OAuth callback with authorization code.
+        Exchanges code for tokens, fetches user info, creates/logs in user.
+        
+        Args:
+            code: Authorization code from Google
+            ip_address: Client IP address
+            user_agent: Client user agent
+            
+        Returns:
+            Dict with tokens and user data
+        """
+        import httpx
+        
+        # Exchange code for tokens
+        token_data = {
+            "code": code,
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "client_secret": settings.GOOGLE_CLIENT_SECRET,
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code",
+        }
+        
+        async with httpx.AsyncClient() as client:
+            # Get tokens from Google
+            token_response = await client.post(
+                "https://oauth2.googleapis.com/token",
+                data=token_data
+            )
+            
+            if token_response.status_code != 200:
+                logger.error(f"Google token exchange failed: {token_response.text}")
+                raise ValidationError("Failed to exchange authorization code")
+            
+            tokens = token_response.json()
+            access_token = tokens.get("access_token")
+            
+            # Get user info from Google
+            userinfo_response = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            
+            if userinfo_response.status_code != 200:
+                logger.error(f"Google userinfo failed: {userinfo_response.text}")
+                raise ValidationError("Failed to get user info from Google")
+            
+            google_user = userinfo_response.json()
+        
+        # Extract user info
+        google_id = google_user.get("sub")
+        email = google_user.get("email")
+        first_name = google_user.get("given_name", "")
+        last_name = google_user.get("family_name", "")
+        profile_photo = google_user.get("picture")
+        
+        if not email:
+            raise ValidationError("Email not provided by Google")
+        
+        # Authenticate or create user
+        user, is_new_user = await self.google_auth(
+            google_id=google_id,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            profile_photo=profile_photo
+        )
+        
+        # Update profile photo if it changed
+        if profile_photo and user.profile_photo != profile_photo:
+            user.profile_photo = profile_photo
+            await user.save()
+        
+        # Log activity
+        await user.add_activity_log(
+            action="google_login",
+            description="Logged in via Google OAuth",
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+        
+        # Send welcome email for new users
+        if is_new_user:
+            try:
+                email_result = await email_service.send_welcome_email(
+                    to_email=user.email,
+                    to_name=user.full_name or user.first_name
+                )
+                if email_result.success:
+                    logger.info(f"Welcome email sent to new Google user: {user.email}")
+            except Exception as e:
+                logger.error(f"Failed to send welcome email: {e}")
+        
+        # Generate JWT tokens
+        jwt_access_token = create_access_token(
+            subject=str(user.id),
+            user_type="user"
+        )
+        jwt_refresh_token = create_refresh_token(
+            subject=str(user.id),
+            user_type="user"
+        )
+        
+        return {
+            "access_token": jwt_access_token,
+            "refresh_token": jwt_refresh_token,
+            "token_type": "bearer",
+            "expires_in": 1800,
+            "user": self._to_response(user),
+            "is_new_user": is_new_user
+        }
+    
+    async def google_id_token_auth(
+        self,
+        id_token: str,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Authenticate using a Google ID token (for mobile/frontend).
+        Verifies the token with Google and creates/logs in user.
+        
+        Args:
+            id_token: Google ID token from frontend
+            ip_address: Client IP address
+            user_agent: Client user agent
+            
+        Returns:
+            Dict with tokens and user data
+        """
+        import httpx
+        
+        # Verify ID token with Google
+        async with httpx.AsyncClient() as client:
+            # Use Google's tokeninfo endpoint to verify
+            verify_response = await client.get(
+                f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
+            )
+            
+            if verify_response.status_code != 200:
+                logger.error(f"Google ID token verification failed: {verify_response.text}")
+                raise AuthenticationError("Invalid Google ID token")
+            
+            token_info = verify_response.json()
+        
+        # Verify the token was issued for our app
+        if token_info.get("aud") != settings.GOOGLE_CLIENT_ID:
+            raise AuthenticationError("Token not issued for this application")
+        
+        # Extract user info
+        google_id = token_info.get("sub")
+        email = token_info.get("email")
+        first_name = token_info.get("given_name", "")
+        last_name = token_info.get("family_name", "")
+        profile_photo = token_info.get("picture")
+        
+        if not email:
+            raise ValidationError("Email not provided in token")
+        
+        # Authenticate or create user
+        user, is_new_user = await self.google_auth(
+            google_id=google_id,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            profile_photo=profile_photo
+        )
+        
+        # Update profile photo if it changed
+        if profile_photo and user.profile_photo != profile_photo:
+            user.profile_photo = profile_photo
+            await user.save()
+        
+        # Log activity
+        await user.add_activity_log(
+            action="google_login",
+            description="Logged in via Google ID token",
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+        
+        # Send welcome email for new users
+        if is_new_user:
+            try:
+                email_result = await email_service.send_welcome_email(
+                    to_email=user.email,
+                    to_name=user.full_name or user.first_name
+                )
+                if email_result.success:
+                    logger.info(f"Welcome email sent to new Google user: {user.email}")
+            except Exception as e:
+                logger.error(f"Failed to send welcome email: {e}")
+        
+        # Generate JWT tokens
+        jwt_access_token = create_access_token(
+            subject=str(user.id),
+            user_type="user"
+        )
+        jwt_refresh_token = create_refresh_token(
+            subject=str(user.id),
+            user_type="user"
+        )
+        
+        return {
+            "access_token": jwt_access_token,
+            "refresh_token": jwt_refresh_token,
+            "token_type": "bearer",
+            "expires_in": 1800,
+            "user": self._to_response(user),
+            "is_new_user": is_new_user
+        }
+
     async def facebook_auth(
         self,
         facebook_id: str,
@@ -336,7 +577,23 @@ class UserService:
             purpose="email_verification"
         )
         
-        # TODO: Send verification email
+        # Send verification email
+        try:
+            verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+            
+            email_result = await email_service.send_verification_email(
+                to_email=user.email,
+                to_name=user.full_name or user.first_name,
+                verification_url=verification_url,
+                token=token
+            )
+            
+            if email_result.success:
+                logger.info(f"Verification email sent to: {user.email}")
+            else:
+                logger.warning(f"Failed to send verification email to {user.email}: {email_result.error}")
+        except Exception as e:
+            logger.error(f"Error sending verification email to {user.email}: {e}")
         
         return token
     
@@ -351,6 +608,20 @@ class UserService:
             raise NotFoundError("User")
         
         logger.info(f"Email verified for user: {user.email}")
+        
+        # Send welcome email after verification
+        try:
+            email_result = await email_service.send_welcome_email(
+                to_email=user.email,
+                to_name=user.full_name or user.first_name
+            )
+            
+            if email_result.success:
+                logger.info(f"Welcome email sent to: {user.email}")
+            else:
+                logger.warning(f"Failed to send welcome email to {user.email}: {email_result.error}")
+        except Exception as e:
+            logger.error(f"Error sending welcome email to {user.email}: {e}")
         
         return user
     
@@ -367,7 +638,22 @@ class UserService:
             user_type="user"
         )
         
-        # TODO: Send password reset email
+        # Send password reset email
+        try:
+            reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+            
+            email_result = await email_service.send_password_reset_email(
+                to_email=user.email,
+                to_name=user.full_name or user.first_name,
+                reset_url=reset_url
+            )
+            
+            if email_result.success:
+                logger.info(f"Password reset email sent to: {user.email}")
+            else:
+                logger.warning(f"Failed to send password reset email to {user.email}: {email_result.error}")
+        except Exception as e:
+            logger.error(f"Error sending password reset email to {user.email}: {e}")
         
         return token
     

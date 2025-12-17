@@ -12,10 +12,10 @@ from beanie.odm.operators.find.comparison import In
 from app.core.constants import AccountStatus, AgentType, VerificationStatus
 from app.models.agent import Agent, AgentVerification
 from app.repositories.base import BaseRepository
-from app.schemas.agent import AgentCreate, AgentUpdate, AgentListParams
+from app.schemas.agent import AgentListParams
 
 
-class AgentRepository(BaseRepository[Agent, AgentCreate, AgentUpdate]):
+class AgentRepository(BaseRepository[Agent]):
     """Repository for Agent document operations"""
     
     def __init__(self):
@@ -375,7 +375,7 @@ class AgentRepository(BaseRepository[Agent, AgentCreate, AgentUpdate]):
         """
         return await self.model.find(
             {"agent_type": agent_type, "is_deleted": False, "is_active": True}
-        ).sort(("-is_featured", "-rating.average")) \
+        ).sort(["-is_featured", "-rating.average"]) \
             .skip(skip) \
             .limit(limit) \
             .to_list()
@@ -420,7 +420,7 @@ class AgentRepository(BaseRepository[Agent, AgentCreate, AgentUpdate]):
             query["specialization.destinations"] = {"$in": specialization}
         
         return await self.model.find(query) \
-            .sort(("-is_featured", "-rating.average")) \
+            .sort(["-is_featured", "-rating.average"]) \
             .limit(limit) \
             .to_list()
     

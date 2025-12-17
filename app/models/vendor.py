@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from beanie import Document, Indexed, PydanticObjectId
-from pydantic import EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.core.constants import (
     AccountStatus,
@@ -18,34 +18,30 @@ from app.core.constants import (
 )
 
 
-class VendorAddress(Document):
+# === Embedded Models (use BaseModel, NOT Document) ===
+
+class VendorAddress(BaseModel):
     """Vendor address embedded document"""
     street: Optional[str] = None
-    city: str
-    state: str
+    city: str = ""
+    state: str = ""
     country: str = "Nigeria"
     postal_code: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     formatted_address: Optional[str] = None
-    
-    class Settings:
-        name = "vendor_addresses"
 
 
-class VendorContact(Document):
+class VendorContact(BaseModel):
     """Vendor contact information"""
-    phone: str
+    phone: Optional[str] = None
     phone_secondary: Optional[str] = None
-    email: EmailStr
+    email: Optional[str] = None
     website: Optional[str] = None
     whatsapp: Optional[str] = None
-    
-    class Settings:
-        name = "vendor_contacts"
 
 
-class VendorSocialLinks(Document):
+class VendorSocialLinks(BaseModel):
     """Vendor social media links"""
     facebook: Optional[str] = None
     instagram: Optional[str] = None
@@ -55,29 +51,30 @@ class VendorSocialLinks(Document):
     tiktok: Optional[str] = None
     tripadvisor: Optional[str] = None
     google_business: Optional[str] = None
-    
-    class Settings:
-        name = "vendor_social_links"
 
 
-class VendorOperatingHours(Document):
+class DayHours(BaseModel):
+    """Operating hours for a single day"""
+    is_open: bool = True
+    open_time: Optional[str] = "09:00"
+    close_time: Optional[str] = "17:00"
+
+
+class VendorOperatingHours(BaseModel):
     """Vendor operating hours"""
-    monday: Optional[Dict[str, str]] = None
-    tuesday: Optional[Dict[str, str]] = None
-    wednesday: Optional[Dict[str, str]] = None
-    thursday: Optional[Dict[str, str]] = None
-    friday: Optional[Dict[str, str]] = None
-    saturday: Optional[Dict[str, str]] = None
-    sunday: Optional[Dict[str, str]] = None
+    monday: Optional[DayHours] = None
+    tuesday: Optional[DayHours] = None
+    wednesday: Optional[DayHours] = None
+    thursday: Optional[DayHours] = None
+    friday: Optional[DayHours] = None
+    saturday: Optional[DayHours] = None
+    sunday: Optional[DayHours] = None
     timezone: str = "Africa/Lagos"
     is_24_hours: bool = False
-    special_hours: Optional[List[Dict[str, Any]]] = None  # For holidays, special dates
-    
-    class Settings:
-        name = "vendor_operating_hours"
+    special_hours: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
 
-class VendorBankAccount(Document):
+class VendorBankAccount(BaseModel):
     """Vendor bank account for payouts"""
     bank_name: str
     account_name: str
@@ -89,25 +86,19 @@ class VendorBankAccount(Document):
     is_verified: bool = False
     is_primary: bool = True
     verified_at: Optional[datetime] = None
-    
-    class Settings:
-        name = "vendor_bank_accounts"
 
 
-class VendorCommission(Document):
+class VendorCommission(BaseModel):
     """Vendor commission structure"""
     type: str = "percentage"
-    rate: float = 15.0  # Default 15% commission
+    rate: float = 15.0
     fixed_amount: Optional[float] = None
     tiers: Optional[List[Dict[str, Any]]] = None
     currency: str = "NGN"
     effective_from: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "vendor_commissions"
 
 
-class VendorRating(Document):
+class VendorRating(BaseModel):
     """Vendor rating summary"""
     average: float = 0.0
     count: int = 0
@@ -115,42 +106,33 @@ class VendorRating(Document):
         "5": 0, "4": 0, "3": 0, "2": 0, "1": 0
     })
     last_updated: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "vendor_ratings"
 
 
-class VendorMedia(Document):
+class VendorMedia(BaseModel):
     """Vendor media items"""
     logo: Optional[str] = None
     cover_image: Optional[str] = None
     gallery: List[Dict[str, Any]] = Field(default_factory=list)
     videos: List[Dict[str, Any]] = Field(default_factory=list)
     documents: List[Dict[str, Any]] = Field(default_factory=list)
-    
-    class Settings:
-        name = "vendor_media"
 
 
-class VendorVerification(Document):
+class VendorVerification(BaseModel):
     """Vendor verification documents and status"""
     status: VerificationStatus = VerificationStatus.PENDING
-    business_registration: Optional[str] = None  # Document URL
+    business_registration: Optional[str] = None
     tax_certificate: Optional[str] = None
     license_document: Optional[str] = None
     identity_document: Optional[str] = None
     proof_of_address: Optional[str] = None
     submitted_at: Optional[datetime] = None
     reviewed_at: Optional[datetime] = None
-    reviewed_by: Optional[PydanticObjectId] = None
+    reviewed_by: Optional[str] = None
     rejection_reason: Optional[str] = None
     notes: Optional[str] = None
-    
-    class Settings:
-        name = "vendor_verifications"
 
 
-class VendorSubscription(Document):
+class VendorSubscription(BaseModel):
     """Vendor subscription details"""
     plan: SubscriptionPlan = SubscriptionPlan.FREE
     started_at: datetime = Field(default_factory=datetime.utcnow)
@@ -160,12 +142,16 @@ class VendorSubscription(Document):
     payment_method: Optional[str] = None
     stripe_subscription_id: Optional[str] = None
     features: List[str] = Field(default_factory=list)
-    
-    class Settings:
-        name = "vendor_subscriptions"
 
 
-class VendorAnalytics(Document):
+class VendorPriceRange(BaseModel):
+    """Vendor price range"""
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    currency: str = "NGN"
+
+
+class VendorAnalytics(BaseModel):
     """Vendor analytics summary"""
     total_bookings: int = 0
     total_revenue: float = 0.0
@@ -177,10 +163,9 @@ class VendorAnalytics(Document):
     monthly_stats: Dict[str, Any] = Field(default_factory=dict)
     last_booking_at: Optional[datetime] = None
     last_updated: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Settings:
-        name = "vendor_analytics"
 
+
+# === Main Vendor Document ===
 
 class Vendor(Document):
     """
@@ -212,14 +197,14 @@ class Vendor(Document):
     is_premium: bool = False
     is_active: bool = True
     
-    # Location & Contact
+    # Location & Contact (Embedded documents)
     address: Optional[VendorAddress] = None
     contact: Optional[VendorContact] = None
     social_links: Optional[VendorSocialLinks] = None
     operating_hours: Optional[VendorOperatingHours] = None
     
     # GeoJSON for spatial queries
-    location: Optional[Dict[str, Any]] = None  # {"type": "Point", "coordinates": [lng, lat]}
+    location: Optional[Dict[str, Any]] = None
     
     # Financial
     bank_accounts: List[VendorBankAccount] = Field(default_factory=list)
@@ -259,14 +244,14 @@ class Vendor(Document):
     refund_policy: Optional[str] = None
     terms_and_conditions: Optional[str] = None
     
-    # Services & Amenities (for hotels, restaurants, etc.)
+    # Services & Amenities
     amenities: List[str] = Field(default_factory=list)
     services: List[str] = Field(default_factory=list)
     features: List[str] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
     
     # Pricing
-    price_range: Optional[Dict[str, float]] = None  # {"min": 0, "max": 0}
+    price_range: Optional[VendorPriceRange] = None
     currency: str = "NGN"
     
     # Languages
@@ -276,8 +261,8 @@ class Vendor(Document):
     certifications: List[Dict[str, Any]] = Field(default_factory=list)
     awards: List[Dict[str, Any]] = Field(default_factory=list)
     
-    # Integration IDs (for external systems)
-    external_ids: Dict[str, str] = Field(default_factory=dict)  # {"booking_com": "xxx", "expedia": "yyy"}
+    # Integration IDs
+    external_ids: Dict[str, str] = Field(default_factory=dict)
     
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -302,8 +287,8 @@ class Vendor(Document):
             "is_verified",
             "is_featured",
             "is_active",
-            [("location", "2dsphere")],  # Geospatial index
-            [("business_name", "text"), ("description", "text")],  # Text search
+            [("location", "2dsphere")],
+            [("business_name", "text"), ("description", "text")],
         ]
     
     @field_validator("email", mode="before")
@@ -358,7 +343,7 @@ class Vendor(Document):
         if self.verification:
             self.verification.status = VerificationStatus.VERIFIED
             self.verification.reviewed_at = datetime.utcnow()
-            self.verification.reviewed_by = admin_id
+            self.verification.reviewed_by = str(admin_id)
         await self.save()
     
     async def update_rating(self, new_rating: int) -> None:
@@ -366,11 +351,9 @@ class Vendor(Document):
         if not self.rating:
             self.rating = VendorRating()
         
-        # Update breakdown
         self.rating.breakdown[str(new_rating)] += 1
         self.rating.count += 1
         
-        # Recalculate average
         total = sum(
             int(k) * v for k, v in self.rating.breakdown.items()
         )
@@ -413,4 +396,3 @@ class Vendor(Document):
             "cancellation_policy": self.cancellation_policy.value,
             "created_at": self.created_at.isoformat(),
         }
-

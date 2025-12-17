@@ -145,12 +145,21 @@ class OperatingHoursCreate(BaseSchema):
     saturday: Optional[DayHoursCreate] = None
     sunday: Optional[DayHoursCreate] = None
     timezone: str = "Africa/Lagos"
-    special_hours: List[Dict[str, Any]] = Field(default_factory=list)
+    special_hours: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
 
-class OperatingHoursResponse(OperatingHoursCreate):
-    """Operating hours response"""
-    pass
+class OperatingHoursResponse(BaseSchema):
+    """Operating hours response - handles None values from DB"""
+    monday: Optional[DayHoursCreate] = None
+    tuesday: Optional[DayHoursCreate] = None
+    wednesday: Optional[DayHoursCreate] = None
+    thursday: Optional[DayHoursCreate] = None
+    friday: Optional[DayHoursCreate] = None
+    saturday: Optional[DayHoursCreate] = None
+    sunday: Optional[DayHoursCreate] = None
+    timezone: Optional[str] = "Africa/Lagos"
+    is_24_hours: Optional[bool] = False
+    special_hours: Optional[List[Dict[str, Any]]] = None
 
 
 # === Media Schemas ===
@@ -241,8 +250,8 @@ class BankAccountResponse(BaseSchema):
 
 # === Contact Schemas ===
 
-class ContactInfoCreate(BaseSchema):
-    """Contact information"""
+class ContactCreate(BaseSchema):
+    """Contact information creation"""
     email: Optional[str] = None
     phone: Optional[str] = None
     phone_country_code: Optional[str] = "+234"
@@ -250,9 +259,14 @@ class ContactInfoCreate(BaseSchema):
     whatsapp: Optional[str] = None
 
 
-class ContactInfoResponse(ContactInfoCreate):
+class ContactResponse(ContactCreate):
     """Contact info response"""
     pass
+
+
+# Aliases for backward compatibility
+ContactInfoCreate = ContactCreate
+ContactInfoResponse = ContactResponse
 
 
 # === Search & Filter Schemas ===
@@ -322,6 +336,23 @@ class SubscriptionResponse(BaseSchema):
     is_active: bool
     auto_renew: bool
     features: List[str] = Field(default_factory=list)
+
+
+# === Commission Schemas ===
+
+class CommissionCreate(BaseSchema):
+    """Commission structure creation"""
+    type: str = "percentage"  # percentage, fixed
+    value: float = Field(..., ge=0)
+    min_amount: Optional[float] = None
+    max_amount: Optional[float] = None
+    applies_to: str = "all"  # all, specific_category
+
+
+class CommissionResponse(CommissionCreate):
+    """Commission structure response"""
+    effective_from: Optional[datetime] = None
+    effective_until: Optional[datetime] = None
 
 
 # === Health Check Schemas ===

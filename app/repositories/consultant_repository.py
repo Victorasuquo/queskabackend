@@ -12,7 +12,7 @@ from app.models.consultant import Consultant
 from app.repositories.base import BaseRepository
 
 
-class ConsultantRepository(BaseRepository):
+class ConsultantRepository(BaseRepository[Consultant]):
     """Repository for Consultant document operations"""
     
     def __init__(self):
@@ -49,7 +49,7 @@ class ConsultantRepository(BaseRepository):
                 "is_verified": True,
                 "is_available": True
             }
-        ).sort(("-is_featured", "-rating.average")).limit(limit).to_list()
+        ).sort(["-is_featured", "-rating.average"]).limit(limit).to_list()
     
     async def update_last_login(self, consultant_id: str) -> Optional[Consultant]:
         """Update consultant last login"""

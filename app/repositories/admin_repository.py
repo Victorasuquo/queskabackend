@@ -13,7 +13,7 @@ from app.models.admin import Admin
 from app.repositories.base import BaseRepository
 
 
-class AdminRepository(BaseRepository):
+class AdminRepository(BaseRepository[Admin]):
     """Repository for Admin document operations"""
     
     def __init__(self):

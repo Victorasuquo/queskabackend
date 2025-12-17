@@ -32,11 +32,29 @@ from app.models.user import User, UserPreferences, UserAddress, UserSubscription
 from app.models.vendor import Vendor
 from app.models.agent import Agent
 from app.models.admin import Admin
-# from app.models.experience import Experience
+from app.models.notification import Notification, NotificationTemplate
+from app.models.experience import Experience
+from app.models.experience_card import ExperienceCard
+from app.models.geolocation import SavedPlace, LocationHistory, Route, GeofenceZone
+from app.models.payment import (
+    Payment,
+    PaymentMethodRecord,
+    StripeCustomer,
+    Subscription,
+    Wallet,
+    WalletTransaction,
+    VendorPayout,
+)
+from app.models.activity import (
+    Activity,
+    ActivityAvailability,
+    ActivityBooking,
+    ActivityReview,
+    ActivityWishlist,
+)
+from app.models.destination import Destination, DestinationReview
 # from app.models.booking import Booking
 # from app.models.review import Review
-# from app.models.notification import Notification
-# from app.models.payment import Payment
 
 
 # === Database Setup ===
@@ -53,12 +71,34 @@ async def init_database():
             Vendor,
             Agent,
             Admin,
+            Notification,
+            NotificationTemplate,
+            Experience,
+            ExperienceCard,
+            SavedPlace,
+            LocationHistory,
+            Route,
+            GeofenceZone,
+            # Payment models
+            Payment,
+            PaymentMethodRecord,
+            StripeCustomer,
+            Subscription,
+            Wallet,
+            WalletTransaction,
+            VendorPayout,
+            # Activity models
+            Activity,
+            ActivityAvailability,
+            ActivityBooking,
+            ActivityReview,
+            ActivityWishlist,
+            # Destination models
+            Destination,
+            DestinationReview,
             # Add more models as they are created
-            # Experience,
             # Booking,
             # Review,
-            # Notification,
-            # Payment,
         ]
     )
     

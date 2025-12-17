@@ -174,20 +174,35 @@ async def logout_user(
     "/auth/google",
     response_model=Dict[str, Any],
     summary="Google OAuth login",
-    description="Authenticate or register via Google"
+    description="Authenticate or register via Google using ID token"
 )
-async def google_auth(data: GoogleAuthRequest):
+async def google_auth(data: GoogleAuthRequest, request: Request):
     """
-    Authenticate with Google OAuth.
+    Authenticate with Google OAuth using an ID token.
     
-    If user exists, logs in. If not, creates new account.
+    This endpoint is for mobile apps and frontends that have already
+    obtained a Google ID token through their own OAuth flow.
+    
+    If user exists, logs in. If not, creates new account and sends welcome email.
+    Returns access_token, refresh_token, and user profile including profile_photo.
     """
-    # TODO: Verify Google ID token and extract user info
-    # For now, this is a placeholder
-    raise HTTPException(
-        status_code=501,
-        detail="Google OAuth integration pending. Configure GOOGLE_CLIENT_ID."
-    )
+    try:
+        result = await user_service.google_id_token_auth(
+            id_token=data.id_token,
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent")
+        )
+        return result
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except AuthenticationError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        logger.error(f"Google OAuth error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to authenticate with Google"
+        )
 
 
 @router.post(

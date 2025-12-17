@@ -15,7 +15,7 @@ from app.repositories.base import BaseRepository
 from app.schemas.user import UserListParams
 
 
-class UserRepository(BaseRepository):
+class UserRepository(BaseRepository[User]):
     """Repository for User document operations"""
     
     def __init__(self):

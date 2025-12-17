@@ -140,14 +140,86 @@ class NotificationType(str, Enum):
     WEBHOOK = "webhook"
 
 
+# === Notification Channel ===
+class NotificationChannel(str, Enum):
+    """Notification delivery channels"""
+    EMAIL = "email"
+    SMS = "sms"
+    PUSH = "push"
+    IN_APP = "in_app"
+    WHATSAPP = "whatsapp"
+
+
 # === Notification Status ===
 class NotificationStatus(str, Enum):
     """Status of a notification"""
     PENDING = "pending"
+    QUEUED = "queued"
+    SENDING = "sending"
     SENT = "sent"
     DELIVERED = "delivered"
     READ = "read"
     FAILED = "failed"
+    BOUNCED = "bounced"
+    UNSUBSCRIBED = "unsubscribed"
+
+
+# === Notification Priority ===
+class NotificationPriority(str, Enum):
+    """Priority levels for notifications"""
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+    URGENT = "urgent"
+
+
+# === Notification Category ===
+class NotificationCategory(str, Enum):
+    """Categories of notifications"""
+    # Authentication
+    ACCOUNT_VERIFICATION = "account_verification"
+    PASSWORD_RESET = "password_reset"
+    LOGIN_ALERT = "login_alert"
+    TWO_FACTOR_AUTH = "two_factor_auth"
+    
+    # Bookings & Experiences
+    BOOKING_CONFIRMATION = "booking_confirmation"
+    BOOKING_REMINDER = "booking_reminder"
+    BOOKING_CANCELLED = "booking_cancelled"
+    BOOKING_MODIFIED = "booking_modified"
+    EXPERIENCE_SHARED = "experience_shared"
+    EXPERIENCE_COMPLETED = "experience_completed"
+    
+    # Payments
+    PAYMENT_RECEIVED = "payment_received"
+    PAYMENT_FAILED = "payment_failed"
+    REFUND_PROCESSED = "refund_processed"
+    PAYOUT_SENT = "payout_sent"
+    
+    # Vendor/Agent
+    VENDOR_VERIFICATION = "vendor_verification"
+    NEW_BOOKING_REQUEST = "new_booking_request"
+    REVIEW_RECEIVED = "review_received"
+    
+    # Marketing & Promotions
+    PROMOTIONAL = "promotional"
+    NEWSLETTER = "newsletter"
+    SPECIAL_OFFER = "special_offer"
+    
+    # System
+    SYSTEM_ALERT = "system_alert"
+    MAINTENANCE = "maintenance"
+    SECURITY_ALERT = "security_alert"
+    
+    # Social
+    NEW_FOLLOWER = "new_follower"
+    NEW_MESSAGE = "new_message"
+    MENTION = "mention"
+    
+    # General
+    GENERAL = "general"
+    REMINDER = "reminder"
+    UPDATE = "update"
 
 
 # === Message Types ===
